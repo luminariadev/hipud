@@ -1,9 +1,19 @@
 # Modul dan file hasil build (Jangan diunggah karena sangat besar)
 node_modules/
 dist/
+*.tsbuildinfo
+
+# Hasil kompilasi TypeScript di dalam src/ (dihasilkan oleh `npm run build`)
+# Sumbernya adalah file .ts, jadi file hasil build tidak perlu di-commit.
+src/**/*.js
+src/**/*.js.map
+src/**/*.d.ts
+src/**/*.d.ts.map
 
 # File rahasia (SANGAT PENTING UNTUK TIDAK DIUNGGAH)
 .env
+.env.*
+!.env.example
 
 # File konfigurasi OS yang tidak perlu
 .DS_Store

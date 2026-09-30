@@ -57,6 +57,10 @@ model Order {
   dpAmount    Float       @default(0)
   status      String      @default("PENDING")
   proofImage  String?
+
+  // Token Rahasia untuk pembatalan pesanan oleh pemilik pesanan.
+  // Dikembalikan saat order dibuat dan harus_disertakan saat cancel.
+  cancelToken String?     @unique
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @default(now()) @updatedAt
   items       OrderItem[]

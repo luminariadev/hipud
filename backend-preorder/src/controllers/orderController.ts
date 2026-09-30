@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { randomUUID } from 'node:crypto';
 import prisma from '../config/database.js';
 import { buildReceiptPDF } from '../services/pdfService.js';
 
@@ -280,10 +281,12 @@ export const createOrder = async (req: Request, res: Response): Promise<any> => 
     }
 
     const invoiceNumber = `INV-${nextNumber.toString().padStart(3, '0')}`;
+    const cancelToken = randomUUID();
 
     const newOrder = await prisma.order.create({
       data: {
         invoiceNumber,
+        cancelToken,
         customerName,
         whatsappNumber,
         address: pickupMethod === 'danus'
@@ -420,14 +423,37 @@ export const downloadReceipt = async (req: Request, res: Response): Promise<any>
 export const cancelOrder = async (req: Request, res: Response): Promise<any> => {
   try {
     const { invoiceNumber } = req.params;
+    // Token pembatalan hanya diberikan kepada pemilik pesanan saat order dibuat.
+    const { cancelToken } = req.body || {};
 
-    // PERBAIKAN DI SINI: Gunakan String(invoiceNumber) agar TypeScript tenang
+    if (!cancelToken || typeof cancelToken !== 'string') {
+      return res.status(400).json({
+        success: false,
+        message: 'Token pembatalan tidak ditemukan. Minta admin untuk membatalkan pesanan.'
+      });
+    }
+
     const existingOrder = await prisma.order.findFirst({
-      where: { invoiceNumber: String(invoiceNumber) } 
+      where: { invoiceNumber: String(invoiceNumber) }
     });
 
     if (!existingOrder) {
       return res.status(404).json({ success: false, message: 'Pesanan tidak ditemukan' });
+    }
+
+    if (!existingOrder.cancelToken || existingOrder.cancelToken !== cancelToken) {
+      return res.status(403).json({
+        success: false,
+        message: 'Anda tidak berhak membatalkan pesanan ini. Minta admin untuk membantu.'
+      });
+    }
+
+    if (existingOrder.status === 'DIBATALKAN') {
+      return res.status(400).json({ success: false, message: 'Pesanan ini sudah dibatalkan sebelumnya.' });
+    }
+
+    if (existingOrder.status === 'SELESAI') {
+      return res.status(400).json({ success: false, message: 'Pesanan yang sudah selesai tidak dapat dibatalkan.' });
     }
 
     const updatedOrder = await prisma.order.update({

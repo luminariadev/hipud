@@ -8,7 +8,7 @@ import QRImage from '../assets/QR.png';
 const Payment = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { invoiceNumber, dpAmount, customerName, orderDate } = location.state || {};
+  const { invoiceNumber, dpAmount, customerName, orderDate, cancelToken } = location.state || {};
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -66,7 +66,7 @@ const Payment = () => {
     const result = await Swal.fire({ title: 'Batalkan pesanan?', text: 'Pesanan akan ditandai batal.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Ya, batalkan', cancelButtonText: 'Kembali' });
     if (!result.isConfirmed) return;
     try {
-      await api.put(`/orders/${invoiceNumber}/cancel`);
+      await api.put(`/orders/${invoiceNumber}/cancel`, { cancelToken });
       Swal.fire({ icon: 'success', title: 'Pesanan dibatalkan' });
       navigate('/');
     } catch {

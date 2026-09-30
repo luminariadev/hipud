@@ -9,8 +9,9 @@ const router = express.Router();
 // PINTU TERBUKA (Publik / Pembeli)
 // ==========================================
 router.post('/', createOrder);
-// Rute baru untuk pelanggan membatalkan pesanan (tanpa token)
-router.put('/:invoiceNumber/cancel', cancelOrder); 
+// Pembatalan oleh pemilik pesanan. Wajib menyertakan cancelToken
+// yang hanya diberikan kepada pemesan saat pesanan dibuat.
+router.put('/:invoiceNumber/cancel', cancelOrder);
 
 // ==========================================
 // PINTU TERGEMBOK (Hanya Admin)
